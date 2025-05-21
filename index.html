@@ -1,8 +1,8 @@
-# StickyNotesButBetter<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Quick Text Copier</title>
+  <title>Clipboard Message Tool</title>
   <style>
     body {
       font-family: sans-serif;
@@ -22,76 +22,66 @@
       font-size: 14px;
       cursor: pointer;
       margin-bottom: 20px;
-      margin-right: 10px;
-    }
-    h2 {
-      margin-top: 30px;
     }
   </style>
 </head>
 <body>
 
-<h2>Message Template</h2>
-<textarea id="textArea1" rows="10">
-Perfect, thank you!
-
-1.Click on the 3 dots at the bottom right corner >Then click software version >Enter the code 2203 That will get you into the installer toolbox
-
-2. Select the "register panel" and enter this code without the dashes:  XXXXX While that registers can you text me your email?
-</textarea>
+<h2>Paste Here (Just Press Ctrl)</h2>
+<textarea id="finalMessage" rows="10" placeholder="Press Control to paste and auto-format..."></textarea>
 <br>
-<button onclick="copyText('textArea1')">Copy Template Text</button>
-
-<h2>Cleaned Clipboard Output</h2>
-<textarea id="textArea2" rows="4" placeholder="Ctrl will paste & clean clipboard content here..."></textarea>
-<br>
-<button onclick="copyText('textArea2')">Copy Cleaned Text</button>
+<button onclick="copyText()">Copy Message</button>
 
 <script>
-  async function insertClipboard() {
+  async function handlePaste() {
     try {
-      const clipText = await navigator.clipboard.readText();
-      const textarea1 = document.getElementById("textArea1");
-      const textarea2 = document.getElementById("textArea2");
+      const rawClip = await navigator.clipboard.readText();
 
-      // Insert clipboard into preset message
-      const markerStart = "dashes:";
-      const markerEnd = " While";
-      const original = textarea1.value;
-      const startIndex = original.indexOf(markerStart);
-      const endIndex = original.indexOf(markerEnd, startIndex);
-
-      if (startIndex !== -1 && endIndex !== -1) {
-        const before = original.slice(0, startIndex + markerStart.length);
-        const after = original.slice(endIndex);
-        const newText = `${before} ${clipText.trim()}${after}`;
-        textarea1.value = newText;
-      }
-
-      // Clean up for second text field
-      let cleaned = clipText
+      // Clean clipboard text
+      let cleaned = rawClip
         .replace("⚫ Passcode:", "")
         .replace(/, Expires: .*?⚾ Text message not sent\. No open Case found!/, "")
         .trim();
 
-      textarea2.value = cleaned;
+      // Preset message
+      const preset = `Perfect, thank you!
+
+1.Click on the 3 dots at the bottom right corner >Then click software version >Enter the code 2203 That will get you into the installer toolbox
+
+2. Select the "register panel" and enter this code without the dashes:  XXXXX While that registers can you text me your email?`;
+
+      // Insert cleaned clipboard text into message
+      const markerStart = "dashes:";
+      const markerEnd = " While";
+      const startIndex = preset.indexOf(markerStart);
+      const endIndex = preset.indexOf(markerEnd, startIndex);
+
+      let final = preset;
+      if (startIndex !== -1 && endIndex !== -1) {
+        const before = preset.slice(0, startIndex + markerStart.length);
+        const after = preset.slice(endIndex);
+        final = `${before} ${cleaned}${after}`;
+      }
+
+      // Show final message
+      document.getElementById("finalMessage").value = final;
 
     } catch (err) {
       alert("Clipboard access failed. Please allow clipboard permissions.");
     }
   }
 
-  function copyText(id) {
-    const textarea = document.getElementById(id);
+  function copyText() {
+    const textarea = document.getElementById("finalMessage");
     textarea.select();
     document.execCommand("copy");
     alert("Copied to clipboard!");
   }
 
-  // Listen for Ctrl key press
+  // Ctrl triggers clipboard paste and formatting
   document.addEventListener("keydown", (e) => {
     if (e.key === "Control") {
-      insertClipboard();
+      handlePaste();
     }
   });
 </script>
