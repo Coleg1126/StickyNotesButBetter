@@ -28,7 +28,7 @@
 <body>
 
 <h2>Paste Here (Just Press Ctrl)</h2>
-<textarea id="finalMessage" rows="10" placeholder="Press Control to paste and auto-format..."></textarea>
+<textarea id="finalMessage" rows="12" placeholder="Press Control to paste and auto-format..."></textarea>
 <br>
 <button onclick="copyText()">Copy Message</button>
 
@@ -43,27 +43,17 @@
         .replace(/, Expires: .*?⚾ Text message not sent\. No open Case found!/, "")
         .trim();
 
-      // Preset message
+      // Original preset message
       const preset = `Perfect, thank you!
 
 1.Click on the 3 dots at the bottom right corner >Then click software version >Enter the code 2203 That will get you into the installer toolbox
 
 2. Select the "register panel" and enter this code without the dashes:  XXXXX While that registers can you text me your email?`;
 
-      // Insert cleaned clipboard text into message
-      const markerStart = "dashes:";
-      const markerEnd = " While";
-      const startIndex = preset.indexOf(markerStart);
-      const endIndex = preset.indexOf(markerEnd, startIndex);
+      // Find and replace "XXXXX" with the cleaned code
+      const final = preset.replace("XXXXX", cleaned);
 
-      let final = preset;
-      if (startIndex !== -1 && endIndex !== -1) {
-        const before = preset.slice(0, startIndex + markerStart.length);
-        const after = preset.slice(endIndex);
-        final = `${before} ${cleaned}${after}`;
-      }
-
-      // Show final message
+      // Output final message
       document.getElementById("finalMessage").value = final;
 
     } catch (err) {
@@ -78,7 +68,7 @@
     alert("Copied to clipboard!");
   }
 
-  // Ctrl triggers clipboard paste and formatting
+  // Trigger on Ctrl key
   document.addEventListener("keydown", (e) => {
     if (e.key === "Control") {
       handlePaste();
