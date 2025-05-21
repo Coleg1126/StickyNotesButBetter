@@ -16,6 +16,13 @@
       padding: 10px;
       box-sizing: border-box;
       margin-bottom: 10px;
+      transition: opacity 0.3s ease;
+    }
+    textarea.fade-out {
+      opacity: 0.2;
+    }
+    textarea.fade-in {
+      opacity: 1;
     }
     button {
       padding: 10px 20px;
@@ -50,11 +57,27 @@
 
 2. Select the "register panel" and enter this code without the dashes:  XXXXX While that registers can you text me your email?`;
 
-      // Find and replace "XXXXX" with the cleaned code
+      // Replace the "XXXXX" with the cleaned code
       const final = preset.replace("XXXXX", cleaned);
 
-      // Output final message
-      document.getElementById("finalMessage").value = final;
+      const textarea = document.getElementById("finalMessage");
+
+      // Animate fade-out
+      textarea.classList.add("fade-out");
+
+      setTimeout(() => {
+        // Update the text after fade-out
+        textarea.value = final;
+
+        // Animate fade-in
+        textarea.classList.remove("fade-out");
+        textarea.classList.add("fade-in");
+
+        // Remove fade-in class after animation
+        setTimeout(() => {
+          textarea.classList.remove("fade-in");
+        }, 300);
+      }, 300);
 
     } catch (err) {
       alert("Clipboard access failed. Please allow clipboard permissions.");
@@ -68,7 +91,7 @@
     alert("Copied to clipboard!");
   }
 
-  // Trigger on Ctrl key
+  // Ctrl key triggers paste + format
   document.addEventListener("keydown", (e) => {
     if (e.key === "Control") {
       handlePaste();
