@@ -57,7 +57,7 @@
 
 2. Select the "register panel" and enter this code without the dashes:  XXXXX While that registers can you text me your email?`;
 
-      // Replace the "XXXXX" with the cleaned code
+      // Replace placeholder with cleaned clipboard content
       const final = preset.replace("XXXXX", cleaned);
 
       const textarea = document.getElementById("finalMessage");
@@ -66,14 +66,26 @@
       textarea.classList.add("fade-out");
 
       setTimeout(() => {
-        // Update the text after fade-out
+        // Update text
         textarea.value = final;
 
         // Animate fade-in
         textarea.classList.remove("fade-out");
         textarea.classList.add("fade-in");
 
-        // Remove fade-in class after animation
+        // Find the code and highlight it
+        const codeMatch = final.match(/\b\w{4}-\w{4}-\w{4}-\w{4}\b/);
+        if (codeMatch) {
+          const code = codeMatch[0];
+          const startIndex = final.indexOf(code);
+          const endIndex = startIndex + code.length;
+
+          // Highlight the code
+          textarea.focus();
+          textarea.setSelectionRange(startIndex, endIndex);
+        }
+
+        // Clean up animation class
         setTimeout(() => {
           textarea.classList.remove("fade-in");
         }, 300);
@@ -91,7 +103,7 @@
     alert("Copied to clipboard!");
   }
 
-  // Ctrl key triggers paste + format
+  // Ctrl key triggers paste + formatting
   document.addEventListener("keydown", (e) => {
     if (e.key === "Control") {
       handlePaste();
