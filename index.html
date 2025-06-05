@@ -50,15 +50,25 @@
         .replace(/, Expires: .*?⚾ Text message not sent\. No open Case found!/, "")
         .trim();
 
-      // Original preset message
-      const preset = `Perfect, thank you!
+      // Variations for the opening line
+      const intros = [
+        "Perfect!",
+        "Perfect, thank you!",
+        "Thanks, perfect!",
+        "Great, thanks!",
+        "Awesome, thanks!"
+      ];
+      const randomIntro = intros[Math.floor(Math.random() * intros.length)];
+
+      // Message body
+      const messageBody = `
 
 1.Click on the 3 dots at the bottom right corner >Then click software version >Enter the code 2203 That will get you into the installer toolbox
 
 2. Select the "register panel" and enter this code without the dashes:  XXXXX While that registers can you text me your email?`;
 
       // Replace placeholder with cleaned clipboard content
-      const final = preset.replace("XXXXX", cleaned);
+      const final = `${randomIntro}${messageBody.replace("XXXXX", cleaned)}`;
 
       const textarea = document.getElementById("finalMessage");
 
@@ -73,19 +83,17 @@
         textarea.classList.remove("fade-out");
         textarea.classList.add("fade-in");
 
-        // Find the code and highlight it
+        // Highlight 16-character code if present
         const codeMatch = final.match(/\b\w{4}-\w{4}-\w{4}-\w{4}\b/);
         if (codeMatch) {
           const code = codeMatch[0];
           const startIndex = final.indexOf(code);
           const endIndex = startIndex + code.length;
-
-          // Highlight the code
           textarea.focus();
           textarea.setSelectionRange(startIndex, endIndex);
         }
 
-        // Clean up animation class
+        // Remove fade-in class
         setTimeout(() => {
           textarea.classList.remove("fade-in");
         }, 300);
@@ -103,7 +111,6 @@
     alert("Copied to clipboard!");
   }
 
-  // Ctrl key triggers paste + formatting
   document.addEventListener("keydown", (e) => {
     if (e.key === "Control") {
       handlePaste();
