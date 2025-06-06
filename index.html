@@ -50,7 +50,7 @@
         .replace(/, Expires: .*?⚾ Text message not sent\. No open Case found!/, "")
         .trim();
 
-      // Variations for the opening line
+      // 1. Random greetings
       const intros = [
         "Perfect!",
         "Perfect, thank you!",
@@ -58,17 +58,43 @@
         "Great, thanks!",
         "Awesome, thanks!"
       ];
-      const randomIntro = intros[Math.floor(Math.random() * intros.length)];
+      
+      // 2. Step 1 variations (how to access Software Version)
+      const step1 = [
+        "Click the 3 dots in the bottom right corner > Then click software version >",
+        "At the bottom right, click the 3 dots > Then tap software version >",
+        "Tap the 3 dots in the bottom right > Then go to software version >",
+        "In the bottom right-hand corner, click the 3 dots > Then press software version >"
+      ];
 
-      // Message body
-      const messageBody = `
+      // 3. Step 2 variations (how to enter the code)
+      const step2 = [
+        "Enter the code 2203. That will get you into the installer toolbox.",
+        "Use 2203 to get in. That’ll open the installer toolbox.",
+        "Type 2203 when prompted — that unlocks the installer toolbox.",
+        "Use 2203 as your access code here to enter the installer toolbox."
+      ];
 
-1.Click on the 3 dots at the bottom right corner >Then click software version >Enter the code 2203 That will get you into the installer toolbox
+      // 4. Final line variations (how to ask for email)
+      const closingLines = [
+        `Select the "register panel" and enter this code without the dashes: ${cleaned} While that registers, can you text me your email?`,
+        `Go to the "register panel" and paste in this code (no dashes): ${cleaned} Let me know once it's done registering.`,
+        `Choose "register panel" and input this code (no dashes): ${cleaned} Let me know when it takes you back to "Installer toolbox".`,
+        `Hit "register panel" and paste this code without dashes: ${cleaned} Can you send me your email while that registers?`
+      ];
 
-2. Select the "register panel" and enter this code without the dashes:  XXXXX While that registers can you text me your email?`;
+      // Randomize selections
+      const intro = intros[Math.floor(Math.random() * intros.length)];
+      const s1 = step1[Math.floor(Math.random() * step1.length)];
+      const s2 = step2[Math.floor(Math.random() * step2.length)];
+      const end = closingLines[Math.floor(Math.random() * closingLines.length)];
 
-      // Replace placeholder with cleaned clipboard content
-      const final = `${randomIntro}${messageBody.replace("XXXXX", cleaned)}`;
+      // Combine full message
+      const final = `${intro}
+
+1. ${s1}${s2}
+
+2. ${end}`;
 
       const textarea = document.getElementById("finalMessage");
 
@@ -76,14 +102,12 @@
       textarea.classList.add("fade-out");
 
       setTimeout(() => {
-        // Update text
         textarea.value = final;
 
-        // Animate fade-in
         textarea.classList.remove("fade-out");
         textarea.classList.add("fade-in");
 
-        // Highlight 16-character code if present
+        // Highlight the code if it matches 16-char format
         const codeMatch = final.match(/\b\w{4}-\w{4}-\w{4}-\w{4}\b/);
         if (codeMatch) {
           const code = codeMatch[0];
@@ -93,12 +117,10 @@
           textarea.setSelectionRange(startIndex, endIndex);
         }
 
-        // Remove fade-in class
         setTimeout(() => {
           textarea.classList.remove("fade-in");
         }, 300);
       }, 300);
-
     } catch (err) {
       alert("Clipboard access failed. Please allow clipboard permissions.");
     }
