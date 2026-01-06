@@ -1,144 +1,547 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Clipboard Message Tool</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      max-width: 800px;
-      margin: auto;
-    }
-    textarea {
-      width: 100%;
-      font-size: 14px;
-      padding: 10px;
-      box-sizing: border-box;
-      margin-bottom: 10px;
-      transition: opacity 0.3s ease;
-    }
-    textarea.fade-out {
-      opacity: 0.2;
-    }
-    textarea.fade-in {
-      opacity: 1;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 14px;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
-  </style>
-</head>
-<body>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quick Paste (Ctrl+V)</title>
 
-<h2>Paste Here (Just Press Ctrl)</h2>
-<textarea id="finalMessage" rows="12" placeholder="Press Control to paste and auto-format..."></textarea>
-<br>
-<button onclick="copyText()">Copy Message</button>
+<style>
+  :root{
+    --bg1:#0b1220;
+    --bg2:#0f1b33;
+    --accent:#7c3aed;
+
+    --card:rgba(255,255,255,.085);
+    --card2:rgba(255,255,255,.05);
+    --stroke:rgba(255,255,255,.14);
+
+    --text:rgba(255,255,255,.92);
+    --muted:rgba(255,255,255,.68);
+
+    --ok:#22c55e;
+    --warn:#facc15;
+
+    --radius:18px;
+    --shadow: 0 20px 50px rgba(0,0,0,.35);
+
+    --patternA: radial-gradient(900px 600px at 15% 10%, rgba(124,58,237,.30), transparent 60%);
+    --patternB: radial-gradient(900px 600px at 85% 25%, rgba(34,197,94,.18), transparent 55%);
+    --patternC: radial-gradient(800px 700px at 50% 95%, rgba(59,130,246,.14), transparent 55%);
+
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    color:var(--text);
+    min-height:100vh;
+    background:
+      var(--patternA),
+      var(--patternB),
+      var(--patternC),
+      linear-gradient(180deg, var(--bg1), var(--bg2));
+    padding: 26px 16px 40px;
+    transition: background .25s ease;
+  }
+
+  .wrap{max-width: 920px; margin:0 auto; display:grid; gap:14px}
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:12px;
+    padding: 6px 2px;
+  }
+
+  .brand{
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+
+  .logo{
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display:grid;
+    place-items:center;
+    background: color-mix(in srgb, var(--accent) 25%, rgba(255,255,255,.06));
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, rgba(255,255,255,.12));
+    box-shadow:
+      0 14px 35px rgba(0,0,0,.25),
+      0 0 0 6px color-mix(in srgb, var(--accent) 10%, transparent);
+    user-select:none;
+  }
+  .logo span{
+    font-size: 20px;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
+  }
+
+  header h1{margin:0;font-size:20px;font-weight:850;letter-spacing:.2px}
+  header p{margin:0;color:var(--muted);font-size:13px;line-height:1.35}
+
+  .pill{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.20);
+    border: 1px solid rgba(255,255,255,.12);
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .kbd{
+    font-family: var(--mono);
+    color: var(--text);
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.16);
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .card{
+    background: linear-gradient(180deg, var(--card), var(--card2));
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    backdrop-filter: blur(10px);
+  }
+
+  .topRow{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+
+  h2{margin:0 0 6px;font-size:15px;letter-spacing:.2px}
+  .hint{margin:0;color:var(--muted);font-size:13px;line-height:1.35}
+
+  /* Theme picker */
+  .themeBox{
+    min-width: 280px;
+    max-width: 520px;
+  }
+  .themeLabel{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .themeRow{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    max-height: 72px;
+    overflow:auto;
+    padding: 6px;
+    border-radius: 14px;
+    background: rgba(0,0,0,.18);
+    border: 1px solid rgba(255,255,255,.10);
+  }
+
+  .chip{
+    appearance:none;
+    cursor:pointer;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.07);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 750;
+    transition: transform .12s ease, background .15s ease, border-color .15s ease;
+    user-select:none;
+    display:inline-flex;
+    gap:7px;
+    align-items:center;
+  }
+  .chip:hover{
+    transform: translateY(-1px);
+    background: rgba(255,255,255,.10);
+    border-color: rgba(255,255,255,.22);
+  }
+  .chip .dot{
+    width:10px;height:10px;border-radius:999px;
+    background: color-mix(in srgb, var(--accent) 70%, rgba(255,255,255,.10));
+    box-shadow: 0 0 0 3px rgba(0,0,0,.18);
+  }
+  .chip.active{
+    border-color: color-mix(in srgb, var(--accent) 60%, white);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+
+  textarea{
+    width:100%;
+    min-height: 270px;
+    resize: vertical;
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(255,255,255,.14);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 12px 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    outline: none;
+    transition: border-color .15s ease, transform .12s ease, opacity .18s ease;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
+  }
+  textarea:focus{
+    border-color: color-mix(in srgb, var(--accent) 55%, rgba(255,255,255,.25));
+    transform: translateY(-1px);
+  }
+
+  .btnRow{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+    margin-top: 12px;
+  }
+
+  .btn{
+    appearance:none;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.08);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor:pointer;
+    transition: transform .12s ease, border-color .15s ease, background .15s ease;
+    user-select:none;
+  }
+  .btn:hover{
+    transform: translateY(-1px);
+    border-color: rgba(255,255,255,.22);
+    background: rgba(255,255,255,.11);
+  }
+  .btn:active{ transform: translateY(0px); }
+  .btn.primary{
+    border-color: color-mix(in srgb, var(--accent) 55%, rgba(255,255,255,.14));
+    background: color-mix(in srgb, var(--accent) 20%, rgba(255,255,255,.06));
+  }
+
+  .toast{
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .ok{ color: rgba(34,197,94,.95); }
+  .warn{ color: rgba(251,191,36,.95); }
+
+  .fade-out{ opacity: 0; transform: translateY(2px); }
+  .fade-in{ opacity: 1; transform: translateY(0px); }
+
+  @supports not (color-mix(in srgb, #000 50%, #fff)) {
+    textarea:focus{ border-color: rgba(124,58,237,.55); }
+    .btn.primary{ border-color: rgba(124,58,237,.55); background: rgba(124,58,237,.22); }
+    .chip.active{ border-color: rgba(124,58,237,.65); background: rgba(124,58,237,.18); }
+    .chip .dot{ background: rgba(124,58,237,.75); }
+    .logo{ background: rgba(124,58,237,.22); border-color: rgba(124,58,237,.45); }
+  }
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" id="logo"><span id="logoEmoji">🛡️</span></div>
+        <div>
+          <h1 id="brandTitle">Quick Paste</h1>
+          <p>Press <span class="kbd">Ctrl</span>+<span class="kbd">V</span> → reads clipboard → generates message → auto-copies</p>
+        </div>
+      </div>
+      <div class="pill">
+        Clipboard <span class="kbd">Ctrl+V</span> → <span class="kbd">Copied</span>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="topRow">
+        <div style="max-width: 520px;">
+          <h2>Paste Here</h2>
+          <div class="hint">
+            Detects codes even with weird dashes (– — -), and inserts the code <b>with dashes</b> for readability.
+          </div>
+        </div>
+
+        <div class="themeBox">
+          <div class="themeLabel">Themes</div>
+          <div class="themeRow" id="themeRow"></div>
+        </div>
+      </div>
+
+      <textarea id="finalMessage" placeholder="Press Ctrl+V to pull clipboard and generate your message..."></textarea>
+
+      <div class="btnRow">
+        <button class="btn primary" id="runBtn">Generate + Copy</button>
+        <button class="btn" id="copyBtn">Copy Message</button>
+        <div class="pill">If blocked: click the page once, then try again.</div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+    </section>
+  </div>
 
 <script>
-  async function handlePaste() {
-    try {
-      const rawClip = await navigator.clipboard.readText();
+  // ============
+  // THEMES (10) + fun logo/branding
+  // ============
+  const themes = {
+    midnight: {
+      label: "Midnight",
+      emoji: "🛡️",
+      bg1:"#0b1220", bg2:"#0f1b33", accent:"#7c3aed",
+      patternA: "radial-gradient(1100px 700px at 20% 10%, rgba(124,58,237,.35), transparent 60%)",
+      patternB: "radial-gradient(900px 650px at 85% 28%, rgba(34,197,94,.18), transparent 55%)",
+      patternC: "radial-gradient(900px 700px at 50% 95%, rgba(59,130,246,.14), transparent 55%)",
+      card:"rgba(255,255,255,.085)", card2:"rgba(255,255,255,.05)"
+    },
+    neon: {
+      label: "Neon",
+      emoji: "⚡",
+      bg1:"#060810", bg2:"#0b1022", accent:"#22d3ee",
+      patternA: "radial-gradient(1000px 650px at 18% 15%, rgba(34,211,238,.34), transparent 60%)",
+      patternB: "radial-gradient(900px 650px at 88% 22%, rgba(167,139,250,.24), transparent 58%)",
+      patternC: "radial-gradient(900px 650px at 55% 98%, rgba(34,197,94,.14), transparent 55%)",
+      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
+    },
+    ocean: {
+      label: "Ocean",
+      emoji: "🌊",
+      bg1:"#051a2a", bg2:"#06243f", accent:"#38bdf8",
+      patternA: "radial-gradient(1100px 750px at 22% 12%, rgba(56,189,248,.30), transparent 62%)",
+      patternB: "radial-gradient(900px 700px at 82% 25%, rgba(16,185,129,.16), transparent 56%)",
+      patternC: "radial-gradient(950px 700px at 45% 92%, rgba(99,102,241,.16), transparent 58%)",
+      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
+    },
+    ember: {
+      label: "Ember",
+      emoji: "🔥",
+      bg1:"#140808", bg2:"#261010", accent:"#fb7185",
+      patternA: "radial-gradient(1000px 650px at 20% 12%, rgba(251,113,133,.32), transparent 60%)",
+      patternB: "radial-gradient(900px 650px at 85% 30%, rgba(245,158,11,.18), transparent 55%)",
+      patternC: "radial-gradient(900px 650px at 50% 95%, rgba(239,68,68,.12), transparent 55%)",
+      card:"rgba(255,255,255,.075)", card2:"rgba(255,255,255,.045)"
+    },
+    mint: {
+      label: "Mint",
+      emoji: "🍀",
+      bg1:"#061b17", bg2:"#072b23", accent:"#34d399",
+      patternA: "radial-gradient(1050px 700px at 18% 12%, rgba(52,211,153,.28), transparent 62%)",
+      patternB: "radial-gradient(900px 650px at 86% 26%, rgba(20,184,166,.18), transparent 58%)",
+      patternC: "radial-gradient(900px 650px at 45% 95%, rgba(59,130,246,.10), transparent 55%)",
+      card:"rgba(255,255,255,.075)", card2:"rgba(255,255,255,.045)"
+    },
+    plum: {
+      label: "Plum",
+      emoji: "🍇",
+      bg1:"#120818", bg2:"#1b0f25", accent:"#e879f9",
+      patternA: "radial-gradient(1100px 700px at 20% 12%, rgba(232,121,249,.30), transparent 62%)",
+      patternB: "radial-gradient(900px 650px at 88% 25%, rgba(124,58,237,.18), transparent 58%)",
+      patternC: "radial-gradient(900px 650px at 50% 95%, rgba(59,130,246,.10), transparent 55%)",
+      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
+    },
+    sand: {
+      label: "Sand",
+      emoji: "🏜️",
+      bg1:"#120f0a", bg2:"#1d1912", accent:"#f59e0b",
+      patternA: "radial-gradient(1100px 750px at 18% 10%, rgba(245,158,11,.26), transparent 62%)",
+      patternB: "radial-gradient(900px 700px at 86% 25%, rgba(251,191,36,.14), transparent 58%)",
+      patternC: "radial-gradient(900px 650px at 55% 98%, rgba(34,197,94,.08), transparent 55%)",
+      card:"rgba(255,255,255,.07)", card2:"rgba(255,255,255,.045)"
+    },
+    aurora: {
+      label: "Aurora",
+      emoji: "🌌",
+      bg1:"#060a14", bg2:"#0a1630", accent:"#a78bfa",
+      patternA: "radial-gradient(1150px 750px at 20% 12%, rgba(167,139,250,.28), transparent 62%)",
+      patternB: "radial-gradient(1050px 750px at 80% 30%, rgba(34,211,238,.18), transparent 60%)",
+      patternC: "radial-gradient(900px 650px at 45% 95%, rgba(34,197,94,.12), transparent 55%)",
+      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
+    },
+    cobalt: {
+      label: "Cobalt",
+      emoji: "🧊",
+      bg1:"#070b1f", bg2:"#0b1538", accent:"#60a5fa",
+      patternA: "radial-gradient(1050px 700px at 20% 10%, rgba(96,165,250,.30), transparent 62%)",
+      patternB: "radial-gradient(900px 700px at 85% 30%, rgba(99,102,241,.18), transparent 58%)",
+      patternC: "radial-gradient(900px 650px at 50% 95%, rgba(34,211,238,.10), transparent 55%)",
+      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
+    },
+    noir: {
+      label: "Noir",
+      emoji: "🕶️",
+      bg1:"#050607", bg2:"#0b0d12", accent:"#f43f5e",
+      patternA: "radial-gradient(1100px 700px at 18% 12%, rgba(244,63,94,.22), transparent 62%)",
+      patternB: "radial-gradient(900px 650px at 88% 25%, rgba(255,255,255,.06), transparent 58%)",
+      patternC: "radial-gradient(900px 650px at 45% 95%, rgba(59,130,246,.08), transparent 55%)",
+      card:"rgba(255,255,255,.065)", card2:"rgba(255,255,255,.04)"
+    }
+  };
 
-      // Clean clipboard text
-      let cleaned = rawClip
-        .replace("⚫ Passcode:", "")
-        .replace(/, Expires: .*?⚾ Text message not sent\. No open Case found!/, "")
-        .trim();
+  const themeRow = document.getElementById("themeRow");
+  const logoEmoji = document.getElementById("logoEmoji");
+  const brandTitle = document.getElementById("brandTitle");
 
-      // 1. Random greetings
-      const intros = [
-        "Perfect!",
-        "Perfect, thank you!",
-        "Thanks, perfect!",
-        "Great, thanks!",
-        "Awesome, thanks!"
-      ];
-      
-      // 2. Step 1 variations (how to access Software Version)
-      const step1 = [
-        "Click the 3 dots in the bottom right corner > Then click software version >",
-        "At the bottom right, click the 3 dots > Then tap software version >",
-        "Tap the 3 dots in the bottom right > Then go to software version >",
-        "In the bottom right-hand corner, click the 3 dots > Then press software version >"
-      ];
+  // Build theme chips dynamically
+  for (const key of Object.keys(themes)) {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.dataset.theme = key;
+    b.innerHTML = `<span class="dot"></span><span>${themes[key].label}</span>`;
+    b.addEventListener("click", () => applyTheme(key));
+    themeRow.appendChild(b);
+  }
 
-      // 3. Step 2 variations (how to enter the code)
-      const step2 = [
-        "Enter the code 2203. That will get you into the installer toolbox.",
-        "Use 2203 to get in. That’ll open the installer toolbox.",
-        "Type 2203 when prompted — that unlocks the installer toolbox.",
-        "Use 2203 as your access code here to enter the installer toolbox."
-      ];
+  function applyTheme(name){
+    const t = themes[name] || themes.midnight;
+    const r = document.documentElement.style;
 
-      // 4. Final line variations (how to ask for email)
-      const closingLines = [
-        `Select the "register panel" and enter this code without the dashes: ${cleaned} While that registers, can you text me your email?`,
-        `Go to the "register panel" and paste in this code (no dashes): ${cleaned} Let me know once it's done registering.`,
-        `Choose "register panel" and input this code (no dashes): ${cleaned} Let me know when it takes you back to "Installer toolbox".`,
-        `Hit "register panel" and paste this code without dashes: ${cleaned} Can you send me your email while that registers?`
-      ];
+    r.setProperty("--bg1", t.bg1);
+    r.setProperty("--bg2", t.bg2);
+    r.setProperty("--accent", t.accent);
+    r.setProperty("--patternA", t.patternA);
+    r.setProperty("--patternB", t.patternB);
+    r.setProperty("--patternC", t.patternC);
+    r.setProperty("--card", t.card);
+    r.setProperty("--card2", t.card2);
 
-      // Randomize selections
-      const intro = intros[Math.floor(Math.random() * intros.length)];
-      const s1 = step1[Math.floor(Math.random() * step1.length)];
-      const s2 = step2[Math.floor(Math.random() * step2.length)];
-      const end = closingLines[Math.floor(Math.random() * closingLines.length)];
+    logoEmoji.textContent = t.emoji;
+    brandTitle.textContent = `Quick Paste • ${t.label}`;
 
-      // Combine full message
-      const final = `${intro}
+    document.querySelectorAll(".chip").forEach(b=>{
+      b.classList.toggle("active", b.dataset.theme === name);
+    });
 
-1. ${s1}${s2}
+    localStorage.setItem("qp_theme", name);
+  }
 
-2. ${end}`;
+  applyTheme(localStorage.getItem("qp_theme") || "midnight");
 
-      const textarea = document.getElementById("finalMessage");
+  // Optional: quick cycle with Alt+T
+  const themeKeys = Object.keys(themes);
+  document.addEventListener("keydown", (e) => {
+    if (e.altKey && (e.key === "t" || e.key === "T")) {
+      e.preventDefault();
+      const current = localStorage.getItem("qp_theme") || "midnight";
+      const i = themeKeys.indexOf(current);
+      const next = themeKeys[(i + 1) % themeKeys.length];
+      applyTheme(next);
+    }
+  });
 
-      // Animate fade-out
-      textarea.classList.add("fade-out");
+  // =========================
+  // QUICK PASTE (Ctrl+V)
+  // =========================
+  const ta = document.getElementById("finalMessage");
+  const toast = document.getElementById("toast");
+  const runBtn = document.getElementById("runBtn");
+  const copyBtn = document.getElementById("copyBtn");
 
-      setTimeout(() => {
-        textarea.value = final;
+  function extractPasscode(text){
+    // remove zero-width chars
+    text = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
 
-        textarea.classList.remove("fade-out");
-        textarea.classList.add("fade-in");
+    // accept dash variants
+    const DASH="[-\u2010\u2011\u2012\u2013\u2014\u2212]";
+    const re=new RegExp(`([A-Za-z0-9]{4})${DASH}([A-Za-z0-9]{4})${DASH}([A-Za-z0-9]{4})${DASH}([A-Za-z0-9]{4})`);
+    const m=text.match(re);
+    if(!m) return null;
 
-        // Highlight the code if it matches 16-char format
-        const codeMatch = final.match(/\b\w{4}-\w{4}-\w{4}-\w{4}\b/);
-        if (codeMatch) {
-          const code = codeMatch[0];
-          const startIndex = final.indexOf(code);
-          const endIndex = startIndex + code.length;
-          textarea.focus();
-          textarea.setSelectionRange(startIndex, endIndex);
+    // normalize to standard hyphens
+    return `${m[1]}-${m[2]}-${m[3]}-${m[4]}`.toUpperCase();
+  }
+
+  function buildMessage(dashed){
+    // Keep dashed in message for readability (customer can type without dashes)
+    return `Perfect, thank you!
+
+1.Click on the 3 dots at the bottom right corner >Then click software version >Enter the code 2203 That will get you into the installer toolbox
+
+2. Select "register panel" and enter this code without the dashes: ${dashed} Let me know when the "registering" screen goes away`;
+  }
+
+  async function runFlow(){
+    try{
+      const raw = await navigator.clipboard.readText();
+      const code = extractPasscode(raw);
+
+      if(!code){
+        toast.className = "toast warn";
+        toast.textContent = "Couldn't find a 16-character passcode like XXXX-XXXX-XXXX-XXXX in your clipboard.";
+        return;
+      }
+
+      const msg = buildMessage(code);
+
+      ta.classList.add("fade-out");
+      setTimeout(async () => {
+        ta.value = msg;
+
+        // highlight the dashed code
+        const idx = msg.indexOf(code);
+        if (idx !== -1) {
+          ta.focus();
+          ta.setSelectionRange(idx, idx + code.length);
         }
 
-        setTimeout(() => {
-          textarea.classList.remove("fade-in");
-        }, 300);
-      }, 300);
-    } catch (err) {
-      alert("Clipboard access failed. Please allow clipboard permissions.");
+        // auto-copy
+        try{
+          await navigator.clipboard.writeText(msg);
+          toast.className = "toast ok";
+          toast.textContent = `Generated + copied ✅ (Passcode: ${code})`;
+        }catch{
+          toast.className = "toast warn";
+          toast.textContent = `Generated, but auto-copy was blocked. Click the page once and try again. (Passcode: ${code})`;
+        }
+
+        ta.classList.remove("fade-out");
+        ta.classList.add("fade-in");
+        setTimeout(() => ta.classList.remove("fade-in"), 220);
+      }, 140);
+
+    }catch{
+      toast.className = "toast warn";
+      toast.textContent = "Clipboard access failed. Click the page once, then try again. You may need to allow clipboard permissions.";
     }
   }
 
-  function copyText() {
-    const textarea = document.getElementById("finalMessage");
-    textarea.select();
-    document.execCommand("copy");
-    alert("Copied to clipboard!");
-  }
-
+  // Reliable hotkey: Ctrl+V
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Control") {
-      handlePaste();
+    if (e.ctrlKey && (e.key === "v" || e.key === "V")) {
+      e.preventDefault(); // prevent raw paste into textarea
+      runFlow();
+    }
+  });
+
+  runBtn.addEventListener("click", runFlow);
+
+  copyBtn.addEventListener("click", async () => {
+    try{
+      await navigator.clipboard.writeText(ta.value || "");
+      toast.className = "toast ok";
+      toast.textContent = "Copied message to clipboard.";
+    }catch{
+      toast.className = "toast warn";
+      toast.textContent = "Copy failed. Select the text and copy manually.";
     }
   });
 </script>
-
 </body>
 </html>
