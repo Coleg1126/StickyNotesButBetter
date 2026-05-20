@@ -1,547 +1,185 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Quick Paste (Ctrl+V)</title>
-
-<style>
-  :root{
-    --bg1:#0b1220;
-    --bg2:#0f1b33;
-    --accent:#7c3aed;
-
-    --card:rgba(255,255,255,.085);
-    --card2:rgba(255,255,255,.05);
-    --stroke:rgba(255,255,255,.14);
-
-    --text:rgba(255,255,255,.92);
-    --muted:rgba(255,255,255,.68);
-
-    --ok:#22c55e;
-    --warn:#facc15;
-
-    --radius:18px;
-    --shadow: 0 20px 50px rgba(0,0,0,.35);
-
-    --patternA: radial-gradient(900px 600px at 15% 10%, rgba(124,58,237,.30), transparent 60%);
-    --patternB: radial-gradient(900px 600px at 85% 25%, rgba(34,197,94,.18), transparent 55%);
-    --patternC: radial-gradient(800px 700px at 50% 95%, rgba(59,130,246,.14), transparent 55%);
-
-    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  }
-
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:var(--sans);
-    color:var(--text);
-    min-height:100vh;
-    background:
-      var(--patternA),
-      var(--patternB),
-      var(--patternC),
-      linear-gradient(180deg, var(--bg1), var(--bg2));
-    padding: 26px 16px 40px;
-    transition: background .25s ease;
-  }
-
-  .wrap{max-width: 920px; margin:0 auto; display:grid; gap:14px}
-
-  header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    gap:12px;
-    padding: 6px 2px;
-  }
-
-  .brand{
-    display:flex;
-    gap:12px;
-    align-items:center;
-  }
-
-  .logo{
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    display:grid;
-    place-items:center;
-    background: color-mix(in srgb, var(--accent) 25%, rgba(255,255,255,.06));
-    border: 1px solid color-mix(in srgb, var(--accent) 40%, rgba(255,255,255,.12));
-    box-shadow:
-      0 14px 35px rgba(0,0,0,.25),
-      0 0 0 6px color-mix(in srgb, var(--accent) 10%, transparent);
-    user-select:none;
-  }
-  .logo span{
-    font-size: 20px;
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
-  }
-
-  header h1{margin:0;font-size:20px;font-weight:850;letter-spacing:.2px}
-  header p{margin:0;color:var(--muted);font-size:13px;line-height:1.35}
-
-  .pill{
-    display:inline-flex;
-    gap:8px;
-    align-items:center;
-    padding: 8px 10px;
-    border-radius: 999px;
-    background: rgba(0,0,0,.20);
-    border: 1px solid rgba(255,255,255,.12);
-    color: var(--muted);
-    font-size: 12px;
-    white-space: nowrap;
-  }
-
-  .kbd{
-    font-family: var(--mono);
-    color: var(--text);
-    background: rgba(255,255,255,.10);
-    border: 1px solid rgba(255,255,255,.16);
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-size: 12px;
-  }
-
-  .card{
-    background: linear-gradient(180deg, var(--card), var(--card2));
-    border: 1px solid var(--stroke);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 16px;
-    backdrop-filter: blur(10px);
-  }
-
-  .topRow{
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-    flex-wrap:wrap;
-    margin-bottom:10px;
-  }
-
-  h2{margin:0 0 6px;font-size:15px;letter-spacing:.2px}
-  .hint{margin:0;color:var(--muted);font-size:13px;line-height:1.35}
-
-  /* Theme picker */
-  .themeBox{
-    min-width: 280px;
-    max-width: 520px;
-  }
-  .themeLabel{
-    font-size:12px;
-    color:var(--muted);
-    margin-bottom:6px;
-  }
-  .themeRow{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    align-items:center;
-    max-height: 72px;
-    overflow:auto;
-    padding: 6px;
-    border-radius: 14px;
-    background: rgba(0,0,0,.18);
-    border: 1px solid rgba(255,255,255,.10);
-  }
-
-  .chip{
-    appearance:none;
-    cursor:pointer;
-    border: 1px solid rgba(255,255,255,.14);
-    background: rgba(255,255,255,.07);
-    color: var(--text);
-    border-radius: 999px;
-    padding: 7px 10px;
-    font-size: 12px;
-    font-weight: 750;
-    transition: transform .12s ease, background .15s ease, border-color .15s ease;
-    user-select:none;
-    display:inline-flex;
-    gap:7px;
-    align-items:center;
-  }
-  .chip:hover{
-    transform: translateY(-1px);
-    background: rgba(255,255,255,.10);
-    border-color: rgba(255,255,255,.22);
-  }
-  .chip .dot{
-    width:10px;height:10px;border-radius:999px;
-    background: color-mix(in srgb, var(--accent) 70%, rgba(255,255,255,.10));
-    box-shadow: 0 0 0 3px rgba(0,0,0,.18);
-  }
-  .chip.active{
-    border-color: color-mix(in srgb, var(--accent) 60%, white);
-    background: color-mix(in srgb, var(--accent) 18%, transparent);
-  }
-
-  textarea{
-    width:100%;
-    min-height: 270px;
-    resize: vertical;
-    background: rgba(0,0,0,.25);
-    border: 1px solid rgba(255,255,255,.14);
-    color: var(--text);
-    border-radius: 14px;
-    padding: 12px 12px;
-    font-size: 13px;
-    line-height: 1.45;
-    outline: none;
-    transition: border-color .15s ease, transform .12s ease, opacity .18s ease;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
-  }
-  textarea:focus{
-    border-color: color-mix(in srgb, var(--accent) 55%, rgba(255,255,255,.25));
-    transform: translateY(-1px);
-  }
-
-  .btnRow{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    align-items:center;
-    justify-content:space-between;
-    margin-top: 12px;
-  }
-
-  .btn{
-    appearance:none;
-    border: 1px solid rgba(255,255,255,.14);
-    background: rgba(255,255,255,.08);
-    color: var(--text);
-    border-radius: 12px;
-    padding: 10px 12px;
-    font-weight: 800;
-    font-size: 13px;
-    cursor:pointer;
-    transition: transform .12s ease, border-color .15s ease, background .15s ease;
-    user-select:none;
-  }
-  .btn:hover{
-    transform: translateY(-1px);
-    border-color: rgba(255,255,255,.22);
-    background: rgba(255,255,255,.11);
-  }
-  .btn:active{ transform: translateY(0px); }
-  .btn.primary{
-    border-color: color-mix(in srgb, var(--accent) 55%, rgba(255,255,255,.14));
-    background: color-mix(in srgb, var(--accent) 20%, rgba(255,255,255,.06));
-  }
-
-  .toast{
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.35;
-  }
-  .ok{ color: rgba(34,197,94,.95); }
-  .warn{ color: rgba(251,191,36,.95); }
-
-  .fade-out{ opacity: 0; transform: translateY(2px); }
-  .fade-in{ opacity: 1; transform: translateY(0px); }
-
-  @supports not (color-mix(in srgb, #000 50%, #fff)) {
-    textarea:focus{ border-color: rgba(124,58,237,.55); }
-    .btn.primary{ border-color: rgba(124,58,237,.55); background: rgba(124,58,237,.22); }
-    .chip.active{ border-color: rgba(124,58,237,.65); background: rgba(124,58,237,.18); }
-    .chip .dot{ background: rgba(124,58,237,.75); }
-    .logo{ background: rgba(124,58,237,.22); border-color: rgba(124,58,237,.45); }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Paste + Snippets</title>
+  <style>
+    :root {
+      --bg1:#0b1220; --bg2:#101a2e; --accent:#7c3aed;
+      --card:rgba(255,255,255,.085); --card2:rgba(255,255,255,.045);
+      --stroke:rgba(255,255,255,.14); --text:rgba(255,255,255,.94); --muted:rgba(255,255,255,.68);
+      --input:rgba(0,0,0,.24); --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+      --radius:18px; --shadow:0 20px 50px rgba(0,0,0,.32);
+      --patternA:radial-gradient(1000px 650px at 15% 10%, rgba(124,58,237,.30), transparent 60%);
+      --patternB:radial-gradient(900px 650px at 85% 20%, rgba(34,197,94,.16), transparent 55%);
+      --patternC:radial-gradient(900px 700px at 50% 95%, rgba(59,130,246,.14), transparent 55%);
+      --sans:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      --mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--sans);color:var(--text);min-height:100vh;background:var(--patternA),var(--patternB),var(--patternC),linear-gradient(180deg,var(--bg1),var(--bg2));padding:24px 16px 42px}
+    .wrap{max-width:1180px;margin:0 auto;display:grid;gap:14px}
+    header{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:4px 2px}
+    .brand{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 25%,rgba(255,255,255,.06));border:1px solid color-mix(in srgb,var(--accent) 45%,rgba(255,255,255,.14));box-shadow:0 14px 35px rgba(0,0,0,.25),0 0 0 6px color-mix(in srgb,var(--accent) 10%,transparent)}.logo span{font-size:22px}
+    h1{margin:0;font-size:22px;letter-spacing:.2px} header p{margin:2px 0 0;color:var(--muted);font-size:13px;line-height:1.35}
+    .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--stroke);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;backdrop-filter:blur(10px)}
+    .toolbar{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .tab,.chip,.btn{appearance:none;cursor:pointer;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:var(--text);border-radius:999px;padding:9px 12px;font-weight:800;font-size:13px;transition:transform .12s ease,background .15s ease,border-color .15s ease}.tab:hover,.chip:hover,.btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.22)}.tab.active,.chip.active,.btn.primary{border-color:color-mix(in srgb,var(--accent) 65%,white);background:color-mix(in srgb,var(--accent) 22%,transparent)}
+    .themeBox{min-width:300px;max-width:520px}.themeLabel{color:var(--muted);font-size:12px;margin-bottom:6px}.themeRow{display:flex;gap:8px;flex-wrap:wrap;max-height:84px;overflow:auto;padding:6px;border-radius:15px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.10)}.chip{padding:7px 10px;font-size:12px;display:inline-flex;gap:7px;align-items:center}.dot{width:10px;height:10px;border-radius:999px;background:color-mix(in srgb,var(--accent) 70%,white);box-shadow:0 0 0 3px rgba(0,0,0,.18)}
+    .panel{display:none}.panel.active{display:block}.grid{display:grid;grid-template-columns:360px 1fr;gap:14px}.stack{display:grid;gap:12px}.topRow{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
+    h2{margin:0 0 6px;font-size:16px}.hint{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.kbd{font-family:var(--mono);color:var(--text);background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);padding:2px 6px;border-radius:8px;font-size:12px}.pill{display:inline-flex;gap:7px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.12);color:var(--muted);font-size:12px;white-space:nowrap}
+    label{display:block;font-size:12px;font-weight:850;color:var(--muted);margin:11px 0 6px} input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.14);background:var(--input);color:var(--text);border-radius:14px;padding:11px 12px;font-size:14px;font-family:var(--sans);outline:none} textarea{min-height:190px;resize:vertical;line-height:1.45}textarea.big{min-height:270px}input:focus,textarea:focus,select:focus{border-color:color-mix(in srgb,var(--accent) 60%,rgba(255,255,255,.25))}option{color:#111827}
+    .btnRow{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}.btn{border-radius:12px}.btn.danger{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.45)}.toast{margin-top:10px;font-size:13px;color:var(--muted);min-height:18px}.toast.ok{color:var(--ok)}.toast.warn{color:var(--warn)}
+    .searchGrid{display:grid;grid-template-columns:1fr 180px;gap:10px;margin:12px 0}.snippetList{display:grid;gap:10px}.snippet{border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:13px;background:rgba(255,255,255,.065)}.snippet.best{border-color:color-mix(in srgb,var(--accent) 70%,white);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}.snippetTitle{font-weight:900;font-size:15px;margin-bottom:5px}.codeBadge,.catBadge{display:inline-block;font-size:12px;font-weight:850;border-radius:999px;padding:4px 8px;margin-right:4px}.codeBadge{color:#fff7ed;background:color-mix(in srgb,var(--accent) 45%,rgba(0,0,0,.22))}.catBadge{color:var(--text);background:rgba(255,255,255,.11)}.snippetText{white-space:pre-wrap;color:rgba(255,255,255,.82);font-size:14px;line-height:1.45;margin:10px 0}.empty{text-align:center;color:var(--muted);padding:28px 10px;border:1px dashed rgba(255,255,255,.18);border-radius:16px}mark{background:rgba(250,204,21,.75);color:#111827;border-radius:4px;padding:0 2px}.fade-out{opacity:.2;transform:translateY(2px)}.fade-in{opacity:1;transform:translateY(0)}
+    @media(max-width:900px){.toolbar,.grid,.searchGrid{grid-template-columns:1fr}.themeBox{min-width:0;max-width:none}}
+  </style>
 </head>
-
 <body>
   <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo" id="logo"><span id="logoEmoji">🛡️</span></div>
-        <div>
-          <h1 id="brandTitle">Quick Paste</h1>
-          <p>Press <span class="kbd">Ctrl</span>+<span class="kbd">V</span> → reads clipboard → generates message → auto-copies</p>
-        </div>
-      </div>
-      <div class="pill">
-        Clipboard <span class="kbd">Ctrl+V</span> → <span class="kbd">Copied</span>
-      </div>
-    </header>
-
-    <section class="card">
-      <div class="topRow">
-        <div style="max-width: 520px;">
-          <h2>Paste Here</h2>
-          <div class="hint">
-            Detects codes even with weird dashes (– — -), and inserts the code <b>with dashes</b> for readability.
-          </div>
-        </div>
-
-        <div class="themeBox">
-          <div class="themeLabel">Themes</div>
-          <div class="themeRow" id="themeRow"></div>
-        </div>
-      </div>
-
-      <textarea id="finalMessage" placeholder="Press Ctrl+V to pull clipboard and generate your message..."></textarea>
-
-      <div class="btnRow">
-        <button class="btn primary" id="runBtn">Generate + Copy</button>
-        <button class="btn" id="copyBtn">Copy Message</button>
-        <div class="pill">If blocked: click the page once, then try again.</div>
-      </div>
-
-      <div class="toast" id="toast"></div>
-    </section>
+    <header><div class="brand"><div class="logo"><span id="logoEmoji">🛡️</span></div><div><h1 id="brandTitle">Quick Paste + Snippet Finder</h1><p>Generate registration messages, search saved messages, and copy quickly.</p></div></div><div class="pill">Theme shortcut: <span class="kbd">Alt</span> + <span class="kbd">T</span></div></header>
+    <section class="card toolbar"><div><h2>Tools</h2><p class="hint">Use Quick Paste for passcodes. Use Snippets for saved customer messages.</p><div class="tabs"><button class="tab active" data-panel="quickPanel">⚡ Quick Paste</button><button class="tab" data-panel="snippetPanel">📌 Snippet Finder</button></div></div><div class="themeBox"><div class="themeLabel">Color themes</div><div class="themeRow" id="themeRow"></div></div></section>
+    <section id="quickPanel" class="panel active card"><div class="topRow"><div><h2>Quick Paste Registration Message</h2><p class="hint">Copy a passcode first, then click Generate + Copy or press <span class="kbd">Ctrl</span> + <span class="kbd">V</span> on this page.</p></div><div class="pill">Detects: XXXX-XXXX-XXXX-XXXX</div></div><label for="finalMessage">Generated message</label><textarea id="finalMessage" class="big" placeholder="Copy a registration passcode, then press Ctrl+V here or click Generate + Copy..."></textarea><div class="btnRow"><button class="btn primary" id="runBtn">Generate + Copy</button><button class="btn" id="copyBtn">Copy Message</button><button class="btn" id="clearQuickBtn">Clear</button></div><div class="toast" id="quickToast"></div></section>
+    <section id="snippetPanel" class="panel card"><div class="grid"><div class="card" style="box-shadow:none;"><h2>Add / Edit Snippet</h2><p class="hint">Built-in snippets always load. Your custom snippets save in this browser.</p><input type="hidden" id="editingId" /><label for="code">Shortcut / Code</label><input id="code" placeholder="Example: qa" /><label for="title">Title</label><input id="title" placeholder="Example: Final QA Call" /><label for="category">Category</label><input id="category" placeholder="Example: Activation" /><label for="snippetText">Message to Copy</label><textarea id="snippetText" placeholder="Paste the exact customer message here..."></textarea><div class="btnRow"><button class="btn primary" id="saveSnippetBtn">Save Snippet</button><button class="btn" id="clearFormBtn">Clear</button></div><div class="btnRow"><button class="btn" id="exportBtn">Export Backup</button><button class="btn" id="importBtn">Import Backup</button><input id="importFile" type="file" accept="application/json" style="display:none" /></div><div class="toast" id="snippetToast"></div><p class="hint" style="margin-top:10px;">Tip: export a backup before clearing browser data or switching computers.</p></div><div class="stack"><div><h2>Find a Snippet</h2><p class="hint">Type a shortcut, title, category, or keyword. Press <span class="kbd">Ctrl</span> + <span class="kbd">C</span> to copy the top result.</p><div class="searchGrid"><input id="search" placeholder="Search: qa, wifi, billing, schedule..." /><select id="categoryFilter"><option value="">All categories</option></select></div></div><div id="snippetList" class="snippetList"></div></div></div></section>
   </div>
-
 <script>
-  // ============
-  // THEMES (10) + fun logo/branding
-  // ============
-  const themes = {
-    midnight: {
-      label: "Midnight",
-      emoji: "🛡️",
-      bg1:"#0b1220", bg2:"#0f1b33", accent:"#7c3aed",
-      patternA: "radial-gradient(1100px 700px at 20% 10%, rgba(124,58,237,.35), transparent 60%)",
-      patternB: "radial-gradient(900px 650px at 85% 28%, rgba(34,197,94,.18), transparent 55%)",
-      patternC: "radial-gradient(900px 700px at 50% 95%, rgba(59,130,246,.14), transparent 55%)",
-      card:"rgba(255,255,255,.085)", card2:"rgba(255,255,255,.05)"
-    },
-    neon: {
-      label: "Neon",
-      emoji: "⚡",
-      bg1:"#060810", bg2:"#0b1022", accent:"#22d3ee",
-      patternA: "radial-gradient(1000px 650px at 18% 15%, rgba(34,211,238,.34), transparent 60%)",
-      patternB: "radial-gradient(900px 650px at 88% 22%, rgba(167,139,250,.24), transparent 58%)",
-      patternC: "radial-gradient(900px 650px at 55% 98%, rgba(34,197,94,.14), transparent 55%)",
-      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
-    },
-    ocean: {
-      label: "Ocean",
-      emoji: "🌊",
-      bg1:"#051a2a", bg2:"#06243f", accent:"#38bdf8",
-      patternA: "radial-gradient(1100px 750px at 22% 12%, rgba(56,189,248,.30), transparent 62%)",
-      patternB: "radial-gradient(900px 700px at 82% 25%, rgba(16,185,129,.16), transparent 56%)",
-      patternC: "radial-gradient(950px 700px at 45% 92%, rgba(99,102,241,.16), transparent 58%)",
-      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
-    },
-    ember: {
-      label: "Ember",
-      emoji: "🔥",
-      bg1:"#140808", bg2:"#261010", accent:"#fb7185",
-      patternA: "radial-gradient(1000px 650px at 20% 12%, rgba(251,113,133,.32), transparent 60%)",
-      patternB: "radial-gradient(900px 650px at 85% 30%, rgba(245,158,11,.18), transparent 55%)",
-      patternC: "radial-gradient(900px 650px at 50% 95%, rgba(239,68,68,.12), transparent 55%)",
-      card:"rgba(255,255,255,.075)", card2:"rgba(255,255,255,.045)"
-    },
-    mint: {
-      label: "Mint",
-      emoji: "🍀",
-      bg1:"#061b17", bg2:"#072b23", accent:"#34d399",
-      patternA: "radial-gradient(1050px 700px at 18% 12%, rgba(52,211,153,.28), transparent 62%)",
-      patternB: "radial-gradient(900px 650px at 86% 26%, rgba(20,184,166,.18), transparent 58%)",
-      patternC: "radial-gradient(900px 650px at 45% 95%, rgba(59,130,246,.10), transparent 55%)",
-      card:"rgba(255,255,255,.075)", card2:"rgba(255,255,255,.045)"
-    },
-    plum: {
-      label: "Plum",
-      emoji: "🍇",
-      bg1:"#120818", bg2:"#1b0f25", accent:"#e879f9",
-      patternA: "radial-gradient(1100px 700px at 20% 12%, rgba(232,121,249,.30), transparent 62%)",
-      patternB: "radial-gradient(900px 650px at 88% 25%, rgba(124,58,237,.18), transparent 58%)",
-      patternC: "radial-gradient(900px 650px at 50% 95%, rgba(59,130,246,.10), transparent 55%)",
-      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
-    },
-    sand: {
-      label: "Sand",
-      emoji: "🏜️",
-      bg1:"#120f0a", bg2:"#1d1912", accent:"#f59e0b",
-      patternA: "radial-gradient(1100px 750px at 18% 10%, rgba(245,158,11,.26), transparent 62%)",
-      patternB: "radial-gradient(900px 700px at 86% 25%, rgba(251,191,36,.14), transparent 58%)",
-      patternC: "radial-gradient(900px 650px at 55% 98%, rgba(34,197,94,.08), transparent 55%)",
-      card:"rgba(255,255,255,.07)", card2:"rgba(255,255,255,.045)"
-    },
-    aurora: {
-      label: "Aurora",
-      emoji: "🌌",
-      bg1:"#060a14", bg2:"#0a1630", accent:"#a78bfa",
-      patternA: "radial-gradient(1150px 750px at 20% 12%, rgba(167,139,250,.28), transparent 62%)",
-      patternB: "radial-gradient(1050px 750px at 80% 30%, rgba(34,211,238,.18), transparent 60%)",
-      patternC: "radial-gradient(900px 650px at 45% 95%, rgba(34,197,94,.12), transparent 55%)",
-      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
-    },
-    cobalt: {
-      label: "Cobalt",
-      emoji: "🧊",
-      bg1:"#070b1f", bg2:"#0b1538", accent:"#60a5fa",
-      patternA: "radial-gradient(1050px 700px at 20% 10%, rgba(96,165,250,.30), transparent 62%)",
-      patternB: "radial-gradient(900px 700px at 85% 30%, rgba(99,102,241,.18), transparent 58%)",
-      patternC: "radial-gradient(900px 650px at 50% 95%, rgba(34,211,238,.10), transparent 55%)",
-      card:"rgba(255,255,255,.08)", card2:"rgba(255,255,255,.05)"
-    },
-    noir: {
-      label: "Noir",
-      emoji: "🕶️",
-      bg1:"#050607", bg2:"#0b0d12", accent:"#f43f5e",
-      patternA: "radial-gradient(1100px 700px at 18% 12%, rgba(244,63,94,.22), transparent 62%)",
-      patternB: "radial-gradient(900px 650px at 88% 25%, rgba(255,255,255,.06), transparent 58%)",
-      patternC: "radial-gradient(900px 650px at 45% 95%, rgba(59,130,246,.08), transparent 55%)",
-      card:"rgba(255,255,255,.065)", card2:"rgba(255,255,255,.04)"
+const THEME_KEY="qp_theme_v3", SNIPPET_KEY="qp_snippets_v3";
+let topSnippetText="";
+const themes={midnight:{label:"Midnight",emoji:"🛡️",bg1:"#0b1220",bg2:"#101a2e",accent:"#7c3aed",a:"rgba(124,58,237,.30)",b:"rgba(34,197,94,.16)",c:"rgba(59,130,246,.14)"},neon:{label:"Neon",emoji:"⚡",bg1:"#060810",bg2:"#0b1022",accent:"#22d3ee",a:"rgba(34,211,238,.34)",b:"rgba(167,139,250,.24)",c:"rgba(34,197,94,.14)"},ocean:{label:"Ocean",emoji:"🌊",bg1:"#051a2a",bg2:"#06243f",accent:"#38bdf8",a:"rgba(56,189,248,.30)",b:"rgba(16,185,129,.16)",c:"rgba(99,102,241,.16)"},ember:{label:"Ember",emoji:"🔥",bg1:"#140808",bg2:"#261010",accent:"#fb7185",a:"rgba(251,113,133,.32)",b:"rgba(245,158,11,.18)",c:"rgba(239,68,68,.12)"},mint:{label:"Mint",emoji:"🍀",bg1:"#061b17",bg2:"#072b23",accent:"#34d399",a:"rgba(52,211,153,.28)",b:"rgba(20,184,166,.18)",c:"rgba(59,130,246,.10)"},plum:{label:"Plum",emoji:"🍇",bg1:"#120818",bg2:"#1b0f25",accent:"#e879f9",a:"rgba(232,121,249,.30)",b:"rgba(124,58,237,.18)",c:"rgba(59,130,246,.10)"},sand:{label:"Sand",emoji:"🏜️",bg1:"#120f0a",bg2:"#1d1912",accent:"#f59e0b",a:"rgba(245,158,11,.26)",b:"rgba(251,191,36,.14)",c:"rgba(34,197,94,.08)"},aurora:{label:"Aurora",emoji:"🌌",bg1:"#060a14",bg2:"#0a1630",accent:"#a78bfa",a:"rgba(167,139,250,.28)",b:"rgba(34,211,238,.18)",c:"rgba(34,197,94,.12)"},cobalt:{label:"Cobalt",emoji:"🧊",bg1:"#070b1f",bg2:"#0b1538",accent:"#60a5fa",a:"rgba(96,165,250,.30)",b:"rgba(99,102,241,.18)",c:"rgba(34,211,238,.10)"},noir:{label:"Noir",emoji:"🕶️",bg1:"#050607",bg2:"#0b0d12",accent:"#f43f5e",a:"rgba(244,63,94,.22)",b:"rgba(255,255,255,.06)",c:"rgba(59,130,246,.08)"}};
+const themeRow=document.getElementById("themeRow");Object.keys(themes).forEach(k=>{const b=document.createElement("button");b.className="chip";b.dataset.theme=k;b.innerHTML=`<span class="dot"></span><span>${themes[k].label}</span>`;b.onclick=()=>applyTheme(k);themeRow.appendChild(b)});
+function applyTheme(name){const t=themes[name]||themes.midnight,r=document.documentElement.style;r.setProperty("--bg1",t.bg1);r.setProperty("--bg2",t.bg2);r.setProperty("--accent",t.accent);r.setProperty("--patternA",`radial-gradient(1000px 650px at 15% 10%, ${t.a}, transparent 60%)`);r.setProperty("--patternB",`radial-gradient(900px 650px at 85% 20%, ${t.b}, transparent 55%)`);r.setProperty("--patternC",`radial-gradient(900px 700px at 50% 95%, ${t.c}, transparent 55%)`);document.getElementById("logoEmoji").textContent=t.emoji;document.getElementById("brandTitle").textContent=`Quick Paste + Snippets • ${t.label}`;document.querySelectorAll(".chip").forEach(b=>b.classList.toggle("active",b.dataset.theme===name));localStorage.setItem(THEME_KEY,name)}applyTheme(localStorage.getItem(THEME_KEY)||"midnight");
+document.addEventListener("keydown",e=>{if(e.altKey&&e.key.toLowerCase()==="t"){e.preventDefault();const keys=Object.keys(themes),cur=localStorage.getItem(THEME_KEY)||"midnight";applyTheme(keys[(keys.indexOf(cur)+1)%keys.length])}});
+document.querySelectorAll(".tab").forEach(tab=>tab.onclick=()=>{document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));tab.classList.add("active");document.getElementById(tab.dataset.panel).classList.add("active");if(tab.dataset.panel==="snippetPanel")document.getElementById("search").focus()});
+const finalMessage=document.getElementById("finalMessage"),quickToast=document.getElementById("quickToast"),snippetToast=document.getElementById("snippetToast");
+function setToast(el,msg,type=""){el.className=`toast ${type}`;el.textContent=msg}
+function extractPasscode(text){text=String(text||"").replace(/[\u200B-\u200D\uFEFF]/g,"").replace("⚫ Passcode:","").replace(/, Expires: .*?⚾ Text message not sent\. No open Case found!/i,"").trim();const dash="[-\\u2010\\u2011\\u2012\\u2013\\u2014\\u2212]",m=new RegExp(`([A-Za-z0-9]{4})${dash}([A-Za-z0-9]{4})${dash}([A-Za-z0-9]{4})${dash}([A-Za-z0-9]{4})`).exec(text);if(m)return`${m[1]}-${m[2]}-${m[3]}-${m[4]}`.toUpperCase();const p=/\b([A-Za-z0-9]{16})\b/.exec(text.replace(/\s/g,""));return p?p[1].replace(/(.{4})(.{4})(.{4})(.{4})/,"$1-$2-$3-$4").toUpperCase():null}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function buildRegistrationMessage(code){return`${pick(["Perfect!","Perfect, thank you!","Thanks, perfect!","Great, thanks!","Awesome, thanks!"])}\n\n1. ${pick(["Tap the 3 dots in the bottom right corner > tap Software Version > enter 2203 to open the Installer Toolbox.","At the bottom right, tap the 3 dots > Software Version > enter 2203. That will open the Installer Toolbox.","Go to the 3 dots in the bottom right > Software Version > use code 2203 to get into the Installer Toolbox."])}\n\n2. ${pick([`Select “Register Panel” and enter this code without the dashes: ${code}. Let me know when the registering screen goes away.`,`Choose “Register Panel” and type this code without the dashes: ${code}. Let me know once it takes you back to Installer Toolbox.`,`Tap “Register Panel” and enter this code without the dashes: ${code}. While that registers, please text me your email.`])}`}
+async function generateFromClipboard(){try{const raw=await navigator.clipboard.readText(),code=extractPasscode(raw);if(!code){setToast(quickToast,"Couldn't find a passcode like XXXX-XXXX-XXXX-XXXX in your clipboard.","warn");return}const msg=buildRegistrationMessage(code);finalMessage.classList.add("fade-out");setTimeout(async()=>{finalMessage.value=msg;const i=msg.indexOf(code);finalMessage.focus();if(i>=0)finalMessage.setSelectionRange(i,i+code.length);try{await navigator.clipboard.writeText(msg);setToast(quickToast,`Generated + copied ✅ Passcode: ${code}`,"ok")}catch{setToast(quickToast,`Generated, but auto-copy was blocked. Use Copy Message. Passcode: ${code}`,"warn")}finalMessage.classList.remove("fade-out");finalMessage.classList.add("fade-in");setTimeout(()=>finalMessage.classList.remove("fade-in"),220)},140)}catch{setToast(quickToast,"Clipboard access failed. Click the page once, then try again.","warn")}}
+document.getElementById("runBtn").onclick=generateFromClipboard;document.getElementById("copyBtn").onclick=()=>copyText(finalMessage.value,quickToast);document.getElementById("clearQuickBtn").onclick=()=>{finalMessage.value="";setToast(quickToast,"")};
+const starterSnippets=[
+{id:"builtin-two-way-voice-test-1",code:"twv",title:"Two-Way Voice Test",category:"Activation Steps",text:`3. Click on "System Testing", scroll down and click "Two-Way Voice Test", Click START TEST or click it again, and it will start a call. Once the voice is done talking and beeps, say "CORRECT CSID" the test will then conclude.`},
+{id:"builtin-pin-update-1",code:"pin",title:"PIN Update",category:"Activation Steps",text:`4. Go back once > turn off the sounder so that the tab is black/grey >Then go back twice and click "users" on the left side. 
+5. Click on "Duress" user > make sure the code is 2580 > make sure it is also enabled and orange
+6. Go back one time > click YOUR NAME and then "pin" and enter any 4 numbers (This will be used to arm and disarm the system.)
+-Enter your phone and email address below your pin and hit "send invitation". That will send you the link to set up a password for the Vivint app so you can control the system remotely (It probably won't let you sign in until the system is active so just let me know once the invite has been sent)`},
+{id:"builtin-panic-emergency-fire-1",code:"pef",title:"Panic / Emergency / Fire",category:"Activation Steps",text:`7.Click on the little white plus or cross down at the panel, you will then see panic emergency and fire >
+Click on panic hold if for 2 seconds and then enter the code 2580 to disarm it. Hit the X in the top right corner to exit "Recent Alarms"
+
+8. Now we are going to arm the system into STAY mode, tap on the disarmed button, slide it to the left into stay mode.
+- Once it is armed, disarm it by sliding down the armed stay button and enter YOUR 4 digit pin.`},
+{id:"builtin-no-previous-service-1",code:"nps",title:"No Previous Service",category:"Activation Steps",text:`Perfect! Go ahead and tap the 3 dots in the bottom right corner, then can you send me the service number in the top right corner?`},
+{id:"builtin-v-sign-1",code:"vs",title:"V-Sign",category:"Activation Steps",text:`Perfect! I'm going to send you a text to confirm pricing. I'm showing that we have you down for a  month term for $ per month. Does that sound correct?`},
+{id:"builtin-v-sign-2",code:"vs2",title:"V-Sign #2",category:"Activation Steps",text:`Alright great, I just sent you that text. Go ahead and fill out the blanks and sign.`},
+{id:"builtin-verbal-password-emergency-contact-1",code:"vpec",title:"Verbal Password + Emergency Contact",category:"Activation Steps",text:`Perfect! And then do you have the first name, last name, and phone number of someone we can put down as an emergency contact?
+          
+Also can I have you think of a verbal password to use in case the alarm is going off? We will call you if it's going off and ask for this to verify that you're safe. It can be any word or number.`},
+{id:"builtin-app-setup-1",code:"app",title:"App Setup",category:"Activation Steps",text:`Alright, I'm still on the phone but I need to give you a call to go over some quality assurance questions. You can set up the app while I wrap up this call with these steps if you'd like!
+
+Click on the 3 dots at the bottom right corner > Click "Users" Select your name > Enter your phone and email address below your pin and hit "send invitation". That will send you the link to set up a password for the Vivint app so you can control the system remotely`},
+{id:"builtin-system-outage-1",code:"out",title:"System Outage",category:"Customer Texts",text:`Hey this is Cole with Vivint. I'm reaching out because we are currently having a system outage and can't do one test for the activation. We can still do the rest of the activation then do that test later if that works?`},
+{id:"builtin-system-outage-2",code:"out2",title:"System Outage #2",category:"Customer Texts",text:`Hey everything is back up and running again! If you're still available, I can send some steps to get started`},
+{id:"builtin-running-behind-1",code:"rb",title:"Running Behind",category:"Customer Texts",text:`Hey this is Cole with Vivint. I'm running a little behind but I can start sending you instructions to activate your security system if you are ready!`},
+{id:"builtin-early-start-1",code:"es",title:"Early Start",category:"Customer Texts",text:`Hey this is Cole with Vivint, it looks like we have a panel activation coming up soon, let me know once you are ready and I'll send you some instructions to get started!`},
+{id:"builtin-walk-up-1",code:"wu",title:"Walk Up",category:"Customer Texts",text:`Hey this is Cole with Vivint. I'm on a different call, but we can start over text if you'd like to start activating your security system!`},
+{id:"builtin-customer-no-answer-1",code:"cna",title:"Customer No Answer",category:"Customer Texts",text:`Hey this is Cole with Vivint. I just called to help activate your security system but wasn't able to reach you. Is now still a good time?`},
+{id:"builtin-texted-called-no-answer-1",code:"tcna",title:"Texted + Called No Answer",category:"Customer Texts",text:`I just called, but couldn't reach you, let me know if you still want to get the system activated today, or call 385-219-3145 to reschedule.`},
+{id:"builtin-3g-cell-1",code:"3g",title:"3G Cell",category:"Account / Previous Service",text:`Hey this is Cole with Vivint Smart Home. I'm just reaching out from the panel activation team because we were looking into your account and it looks like your panel has a bad sim card in it that needs to be replaced. Can we schedule a time for that now?`},
+{id:"builtin-write-off-1",code:"wo",title:"Write Off",category:"Account / Previous Service",text:`Hey this is Cole with Vivint. I had you on my schedule to activate your system, but I see that we need you to contact our billing department to settle a debt to activate the system. Please contact them at 888.346.9202.`},
+{id:"builtin-write-off-2",code:"wo2",title:"Write Off #2",category:"Account / Previous Service",text:`Previous service is the same customer with write off which has not been settled, customer needs to reinstate services with collections at 888.346.9202`},
+{id:"builtin-write-off-3",code:"wo3",title:"Write Off #3",category:"Account / Previous Service",text:`Hey this is Cole with Vivint. I'm reaching out because I had you on my schedule to activate, but with the way the previous account was cancelled we may have to have you work with our billing department to reactivate. I'll keep you posted, sorry for any inconvenience!`},
+{id:"builtin-write-off-4",code:"wo4",title:"Write Off #4",category:"Account / Previous Service",text:`The previous service is the same customer with a write off. I'm checking with Agency Correspondence to see if the debt has been settled, but I am not able to proceed until we can confirm the debt has been settled.`},
+{id:"builtin-agency-1",code:"agency",title:"Agency",category:"Account / Previous Service",text:`Previous service is the same customer with a write-off. Has the debt been settled?
+
+Previous service: 
+
+New service: 
+
+Thank you!`},
+{id:"builtin-bus-1",code:"bus",title:"BUS",category:"Account / Previous Service",text:`Hey this is Cole with Vivint. I'm reaching out because I was looking into your account, and you may actually already be paying for your system through your monthly rent. To avoid double charging you, please contact our Properties team at 855-819-8137 to activate your system.`},
+{id:"builtin-bus-2",code:"bus2",title:"BUS #2",category:"Account / Previous Service",text:`Previous service is a BUS - Multifamily non-monitored account. Unable to activate through NIS, customer needs to call Properties at 855-819-8137.`},
+{id:"builtin-gocontrol-1",code:"gc",title:"GoControl",category:"Account / Previous Service",text:`Hey this is Cole with Vivint. I'm just reaching out because it looks like you may have an outdated version of our panel. Can you confirm whether or not your panel looks like this picture below?
+
+Unfortunately that is our old panel that we no longer reactivate. We can still use any sensors you have with the system, but will need to install a new panel. Will any of these options work?`},
+{id:"builtin-gocontrol-2",code:"gc2",title:"GoControl #2",category:"Account / Previous Service",text:`Customer has a GoControl panel. We are not able to activate this panel anymore, gave them the number for AMI inbound to go over replacement options.`},
+{id:"builtin-takeover-1",code:"to",title:"Takeover",category:"Account / Previous Service",text:`Hey this is Cole with Vivint! I was just reaching to do your security activation. I see the old homeowner set theire account up as a take over which would mean you would take over their monthly payment and contract If they have one. This means you could get a different rate than you were quoted. Would you like to talk to that department?`},
+{id:"builtin-still-active-1",code:"sa",title:"Still Active",category:"Account / Previous Service",text:`Hey this is Cole with Vivint! I'm reaching out because the old account is still active under the previous owners. If you own the home and have closing documents that you can send to me, we can still proceed. The best thing to send would be proof of homeowner's insurance, proof of mortgage, or any kind of deed. If not, we will have to wait for our cancellation review team to cancel the old account, and can reschedule to another day. Let me know if you are able to send this to me, thank you! (Please note that the Closing Disclosure and/or Settlement Statement will not be accepted, as they are preliminary documents) Sorry for any inconvenience!`},
+{id:"builtin-retention-1",code:"ret",title:"Retention",category:"Account / Previous Service",text:`Can we switch the previous service to pending to cancel? We have a new customer trying to set up service.
+
+Previous service:
+New service:
+Thank you!`},
+{id:"builtin-reboot-smarthub-1",code:"rsh",title:"Reboot SmartHub",category:"Troubleshooting",text:`Perfect! We're going to do a reboot to restore the cell connection on the panel first.
+
+Slide the panel straight up off the wall. Take the battery out of the back, wait 10 seconds, put the battery back in, and then put it back on the wall. It should flash a couple times once back on the wall, and then  say "Your system is rebooting" This should take about 2 minutes to reboot. Let me know once it's done rebooting and we can continue.`},
+{id:"builtin-reboot-skycontrol-1",code:"rsc",title:"Reboot SkyControl",category:"Troubleshooting",text:`Go ahead and tap the home button on the bottom right>> Tap the 3 dots>>General>>Use the code 2203 or your code if you have one when it asks for a pin>>Scroll down a little bit>>Tap "Reboot". It should bring up a screen saying "Connecting Services" This reboot will take around 5-10 minutes. Just let me know once it's done rebooting and it's on the main screen.`},
+{id:"builtin-no-power-1",code:"np",title:"No Power",category:"Troubleshooting",text:`Is there a white box with a cord going into the wall anywhere near the panel? Usually it would be plugged in at the outlet closest to the control panel. It should look something like this image I’m attaching below.`},
+{id:"builtin-powercycle-1",code:"pc",title:"Power Cycle",category:"Troubleshooting",text:`If you do not have the pin, it will require a power cycle. This link will show you how to run through that if you have time. https://support.vivint.com/article/SkyControl-Panel-How-To-Power-Cycle
+
+ Let me know if you have any questions, thank you!`},
+{id:"builtin-straight-to-voicemail-1",code:"stv",title:"Straight To Voicemail",category:"Customer Texts",text:`I'm off the phone now, but when I call it goes straight to voicemail. Are you able to save 8667245505 as a contact so the call will go through? Or if you have a different fix for it that will work too!`},
+{id:"builtin-software-update-1",code:"su",title:"Software Update",category:"Troubleshooting",text:`Hey, this is Cole with Vivint. I was looking into your account, and it looks like your software might be a little out of date. Sometimes it can help to do a software update on the panel. If you are available any time before you can follow these steps to help ensure we have a smooth experience while activating your system.
+1. If you have WiFi set up in the home, go ahead and tap the X in the bottom left corner, or the home button. 2. Tap the WiFi symbol in the top right corner, use 2203 or your pin if you know one to get in, then tap select networks and connect it there.`},
+{id:"builtin-swapping-cell-carrier-1",code:"scc",title:"Swapping Cell Carrier",category:"Troubleshooting",text:`Okay, hit back twice, tap Monitoring and Cellular, scroll down to Cell Carrier, switch it from Verzon to ATT. WAIT 30 SECONDS, then scroll down and tap Advanced Cellular Status, scroll down to SIM Card Number. Can you send me a picture of that screen?`},
+{id:"builtin-test-mode-on-and-off-1",code:"tm",title:"Test Mode On / Off",category:"Troubleshooting",text:`Hit back>> Towards the top of that tab, turn on test mode for 10 seconds>> Turn it off after 10 seconds, and try the two way voice test one more time.`},
+{id:"builtin-resetting-cellular-module-1",code:"rcm",title:"Resetting Cellular Module",category:"Troubleshooting",text:`Hit Back twice>> Tap on Monitoring and Cellular>> Scroll all the way down and tap on "Advanced Cellular Status">> Scroll down all the way and tap on "Reset Cellular Module" Hit back twice, tap System Testing, and try the Two Way Voice Test again.`},
+{id:"builtin-register-panel-isnt-there-1",code:"rp",title:"Register Panel Isn’t There",category:"Troubleshooting",text:`Go ahead and tap on "Monitoring and Cellular">>Scroll down until you see "Unregister Panel">>Click that and then tap "Unregister">>Hit back and Register Panel should be there, and you can type the registration code now`},
+{id:"builtin-disarm-1",code:"dis",title:"Disarm",category:"Troubleshooting",text:`Go ahead and plug it back in/put the battery back in the panel, and put the panel back on the wall. When it is back on, slide the button that says armed stay/away straight down and type in 2580`},
+{id:"builtin-disarm-2",code:"dis2",title:"Disarm #2",category:"Troubleshooting",text:`Slide the button that says “Armed Stay/Away” straight down. Type in 2580 or 1111 to disarm.`},
+{id:"builtin-pin-wont-update-1",code:"pwu",title:"PIN Won’t Update",category:"Troubleshooting",text:`Okay, just hit stop and then x out of stopping pin update and your new pin should be there`},
+{id:"builtin-pin-wont-update-2",code:"pwu2",title:"PIN Won’t Update #2",category:"Troubleshooting",text:`As long as your pin shows on the panel that's fine for now!`},
+{id:"builtin-already-active-1",code:"aa",title:"Already Active",category:"Account / Previous Service",text:`Since your account is active, you can call 855-881-3389 for assistance. Thank you!`}
+];
+let snippets=loadSnippets();
+function loadSnippets(){let saved=[];try{saved=JSON.parse(localStorage.getItem(SNIPPET_KEY))||[]}catch{}const merged=[...starterSnippets];saved.forEach(s=>{const i=merged.findIndex(x=>x.id===s.id);if(i>=0)merged[i]=s;else merged.push(s)});return merged}
+function saveSnippets(){localStorage.setItem(SNIPPET_KEY,JSON.stringify(snippets.filter(s=>!String(s.id).startsWith("builtin-")),null,2))}
+function norm(v){return String(v||"").trim().toLowerCase()}function esc(v){return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function escReg(v){return v.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}
+function highlight(text,q){const safe=esc(text),query=q.trim();return query?safe.replace(new RegExp(`(${escReg(esc(query))})`,"gi"),"<mark>$1</mark>"):safe}
+function scoreSnippet(s,q){if(!q)return 1;const n=norm(q),c=norm(s.code),t=norm(s.title),cat=norm(s.category),txt=norm(s.text);if(c===n)return 100;if(c.startsWith(n))return 80;if(t.startsWith(n))return 60;if(t.includes(n))return 45;if(cat.includes(n))return 30;if(txt.includes(n))return 20;return 0}
+function renderCategories(){const sel=document.getElementById("categoryFilter"),cur=sel.value,cats=[...new Set(snippets.map(s=>s.category||"General"))].sort();sel.innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");sel.value=cats.includes(cur)?cur:""}
+function renderSnippets(){const q=document.getElementById("search").value,cat=document.getElementById("categoryFilter").value,list=document.getElementById("snippetList"),results=snippets.map(s=>({...s,score:scoreSnippet(s,q)})).filter(s=>s.score>0).filter(s=>!cat||s.category===cat).sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title));if(!results.length){topSnippetText="";list.innerHTML='<div class="empty">No matching snippets found.</div>';return}topSnippetText=results[0].text;const best=results[0].score;list.innerHTML=results.map(s=>`<article class="snippet ${q&&s.score===best?"best":""}"><div class="snippetTitle">${highlight(s.title,q)}</div><span class="codeBadge">${highlight(s.code,q)}</span><span class="catBadge">${highlight(s.category||"General",q)}</span><div class="snippetText">${highlight(s.text,q)}</div><div class="btnRow"><button class="btn primary" onclick='copyText(${JSON.stringify(s.text)}, snippetToast)'>Copy</button><button class="btn" onclick='editSnippet("${s.id}")'>Edit</button><button class="btn danger" onclick='deleteSnippet("${s.id}")'>Delete</button></div></article>`).join("")}
+function saveSnippet(){const id=document.getElementById("editingId").value,code=document.getElementById("code").value.trim(),title=document.getElementById("title").value.trim(),category=document.getElementById("category").value.trim()||"General",text=document.getElementById("snippetText").value.trim();if(!code||!title||!text){setToast(snippetToast,"Shortcut, title, and message are required.","warn");return}const item={id:id&&!id.startsWith("builtin-")?id:crypto.randomUUID(),code,title,category,text};snippets=id?snippets.map(s=>s.id===id?item:s):[...snippets,item];saveSnippets();clearForm();renderCategories();renderSnippets();setToast(snippetToast,id?"Snippet saved as custom copy.":"Snippet saved.","ok")}
+function clearForm(){["editingId","code","title","category","snippetText"].forEach(id=>document.getElementById(id).value="")}
+function editSnippet(id){const s=snippets.find(x=>x.id===id);if(!s)return;document.getElementById("editingId").value=s.id;document.getElementById("code").value=s.code;document.getElementById("title").value=s.title;document.getElementById("category").value=s.category;document.getElementById("snippetText").value=s.text;window.scrollTo({top:0,behavior:"smooth"})}
+function deleteSnippet(id){if(String(id).startsWith("builtin-")){setToast(snippetToast,"Built-in snippets cannot be permanently deleted. Edit and save as a custom copy instead.","warn");return}if(!confirm("Delete this snippet?"))return;snippets=snippets.filter(s=>s.id!==id);saveSnippets();renderCategories();renderSnippets();setToast(snippetToast,"Snippet deleted.","ok")}
+async function copyText(text,el){
+  const value = text || "";
+
+  try{
+    await navigator.clipboard.writeText(value);
+    setToast(el,"Copied to clipboard ✅","ok");
+    return;
+  }catch{}
+
+  try{
+    const temp = document.createElement("textarea");
+    temp.value = value;
+    temp.setAttribute("readonly", "");
+    temp.style.position = "fixed";
+    temp.style.left = "-9999px";
+    temp.style.top = "0";
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+    temp.setSelectionRange(0, temp.value.length);
+
+    const copied = document.execCommand("copy");
+    document.body.removeChild(temp);
+
+    if(copied){
+      setToast(el,"Copied to clipboard ✅","ok");
+    }else{
+      setToast(el,"Copy blocked. Open this from GitHub Pages, click the page once, allow clipboard access, then try again.","warn");
     }
-  };
-
-  const themeRow = document.getElementById("themeRow");
-  const logoEmoji = document.getElementById("logoEmoji");
-  const brandTitle = document.getElementById("brandTitle");
-
-  // Build theme chips dynamically
-  for (const key of Object.keys(themes)) {
-    const b = document.createElement("button");
-    b.className = "chip";
-    b.dataset.theme = key;
-    b.innerHTML = `<span class="dot"></span><span>${themes[key].label}</span>`;
-    b.addEventListener("click", () => applyTheme(key));
-    themeRow.appendChild(b);
+  }catch{
+    setToast(el,"Copy blocked. Open this from GitHub Pages, click the page once, allow clipboard access, then try again.","warn");
   }
-
-  function applyTheme(name){
-    const t = themes[name] || themes.midnight;
-    const r = document.documentElement.style;
-
-    r.setProperty("--bg1", t.bg1);
-    r.setProperty("--bg2", t.bg2);
-    r.setProperty("--accent", t.accent);
-    r.setProperty("--patternA", t.patternA);
-    r.setProperty("--patternB", t.patternB);
-    r.setProperty("--patternC", t.patternC);
-    r.setProperty("--card", t.card);
-    r.setProperty("--card2", t.card2);
-
-    logoEmoji.textContent = t.emoji;
-    brandTitle.textContent = `Quick Paste • ${t.label}`;
-
-    document.querySelectorAll(".chip").forEach(b=>{
-      b.classList.toggle("active", b.dataset.theme === name);
-    });
-
-    localStorage.setItem("qp_theme", name);
-  }
-
-  applyTheme(localStorage.getItem("qp_theme") || "midnight");
-
-  // Optional: quick cycle with Alt+T
-  const themeKeys = Object.keys(themes);
-  document.addEventListener("keydown", (e) => {
-    if (e.altKey && (e.key === "t" || e.key === "T")) {
-      e.preventDefault();
-      const current = localStorage.getItem("qp_theme") || "midnight";
-      const i = themeKeys.indexOf(current);
-      const next = themeKeys[(i + 1) % themeKeys.length];
-      applyTheme(next);
-    }
-  });
-
-  // =========================
-  // QUICK PASTE (Ctrl+V)
-  // =========================
-  const ta = document.getElementById("finalMessage");
-  const toast = document.getElementById("toast");
-  const runBtn = document.getElementById("runBtn");
-  const copyBtn = document.getElementById("copyBtn");
-
-  function extractPasscode(text){
-    // remove zero-width chars
-    text = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-
-    // accept dash variants
-    const DASH="[-\u2010\u2011\u2012\u2013\u2014\u2212]";
-    const re=new RegExp(`([A-Za-z0-9]{4})${DASH}([A-Za-z0-9]{4})${DASH}([A-Za-z0-9]{4})${DASH}([A-Za-z0-9]{4})`);
-    const m=text.match(re);
-    if(!m) return null;
-
-    // normalize to standard hyphens
-    return `${m[1]}-${m[2]}-${m[3]}-${m[4]}`.toUpperCase();
-  }
-
-  function buildMessage(dashed){
-    // Keep dashed in message for readability (customer can type without dashes)
-    return `Perfect, thank you!
-
-1.Click on the 3 dots at the bottom right corner >Then click software version >Enter the code 2203 That will get you into the installer toolbox
-
-2. Select "register panel" and enter this code without the dashes: ${dashed} Let me know when the "registering" screen goes away`;
-  }
-
-  async function runFlow(){
-    try{
-      const raw = await navigator.clipboard.readText();
-      const code = extractPasscode(raw);
-
-      if(!code){
-        toast.className = "toast warn";
-        toast.textContent = "Couldn't find a 16-character passcode like XXXX-XXXX-XXXX-XXXX in your clipboard.";
-        return;
-      }
-
-      const msg = buildMessage(code);
-
-      ta.classList.add("fade-out");
-      setTimeout(async () => {
-        ta.value = msg;
-
-        // highlight the dashed code
-        const idx = msg.indexOf(code);
-        if (idx !== -1) {
-          ta.focus();
-          ta.setSelectionRange(idx, idx + code.length);
-        }
-
-        // auto-copy
-        try{
-          await navigator.clipboard.writeText(msg);
-          toast.className = "toast ok";
-          toast.textContent = `Generated + copied ✅ (Passcode: ${code})`;
-        }catch{
-          toast.className = "toast warn";
-          toast.textContent = `Generated, but auto-copy was blocked. Click the page once and try again. (Passcode: ${code})`;
-        }
-
-        ta.classList.remove("fade-out");
-        ta.classList.add("fade-in");
-        setTimeout(() => ta.classList.remove("fade-in"), 220);
-      }, 140);
-
-    }catch{
-      toast.className = "toast warn";
-      toast.textContent = "Clipboard access failed. Click the page once, then try again. You may need to allow clipboard permissions.";
-    }
-  }
-
-  // Reliable hotkey: Ctrl+V
-  document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && (e.key === "v" || e.key === "V")) {
-      e.preventDefault(); // prevent raw paste into textarea
-      runFlow();
-    }
-  });
-
-  runBtn.addEventListener("click", runFlow);
-
-  copyBtn.addEventListener("click", async () => {
-    try{
-      await navigator.clipboard.writeText(ta.value || "");
-      toast.className = "toast ok";
-      toast.textContent = "Copied message to clipboard.";
-    }catch{
-      toast.className = "toast warn";
-      toast.textContent = "Copy failed. Select the text and copy manually.";
-    }
-  });
+}
+function exportSnippets(){const blob=new Blob([JSON.stringify(snippets,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="quick-paste-snippets-backup.json";a.click();URL.revokeObjectURL(url)}
+function importSnippets(file){if(!file)return;const r=new FileReader();r.onload=()=>{try{const imported=JSON.parse(r.result);if(!Array.isArray(imported))throw new Error();snippets=imported.map(s=>({id:s.id||crypto.randomUUID(),code:s.code||"",title:s.title||"Untitled",category:s.category||"General",text:s.text||""})).filter(s=>s.code&&s.text);saveSnippets();snippets=loadSnippets();renderCategories();renderSnippets();setToast(snippetToast,"Backup imported.","ok")}catch{setToast(snippetToast,"That backup file could not be imported.","warn")}};r.readAsText(file)}
+document.getElementById("saveSnippetBtn").onclick=saveSnippet;document.getElementById("clearFormBtn").onclick=clearForm;document.getElementById("search").oninput=renderSnippets;document.getElementById("categoryFilter").onchange=renderSnippets;document.getElementById("exportBtn").onclick=exportSnippets;document.getElementById("importBtn").onclick=()=>document.getElementById("importFile").click();document.getElementById("importFile").onchange=e=>{importSnippets(e.target.files[0]);e.target.value=""};
+document.addEventListener("keydown",e=>{const quick=document.getElementById("quickPanel").classList.contains("active"),snip=document.getElementById("snippetPanel").classList.contains("active"),tag=document.activeElement?document.activeElement.tagName.toLowerCase():"";if(quick&&e.ctrlKey&&e.key.toLowerCase()==="v"){e.preventDefault();generateFromClipboard()}if(snip&&e.ctrlKey&&e.key.toLowerCase()==="c"&&topSnippetText&&tag!=="textarea"){e.preventDefault();copyText(topSnippetText,snippetToast)}});
+renderCategories();renderSnippets();
 </script>
 </body>
 </html>
